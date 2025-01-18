@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import passport from "passport";
 import { authMiddleware } from "../middleware/auth.js";
-import RegisteredLink from "../models/registered.js";
+import RegisteredLink from "../models/registered.model.js";
 import mongoose from "mongoose";
 
 const router = Router();

@@ -1,7 +1,8 @@
+
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IRegisteredLink extends Document {
-  user: mongoose.Types.ObjectId; // Reference to the User model
+  user: mongoose.Types.ObjectId;
   longUrl: string;
   shortCode: string;
   visitCount: number;

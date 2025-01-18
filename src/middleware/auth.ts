@@ -1,19 +1,17 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+// src/middleware/auth.ts
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
-interface AuthenticatedRequest extends Request {
-  user?: JwtPayload | string;
-}
-
 export const authMiddleware = (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(" ")[1];
+  console.log(authHeader);
 
   if (!token) {
     res.status(401).json({ message: "Access Denied. No token provided." });
@@ -21,10 +19,10 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-
+    const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload & {
+      userId: string;
+    };
     req.user = decoded;
-
     next();
   } catch (error) {
     console.error("Invalid token:", error);

@@ -3,7 +3,10 @@ import { unregisteredLinkRouter } from "./routes/unregisteredLink.js";
 import mongoose from "mongoose";
 import { userRouter } from "./routes/user.js";
 import cors from "cors";
-const MONGO_URI = process.env.MONGO_URI || "";
+import { registeredLinkRouter } from "./routes/registeredLink.js";
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://rohitvlogs02:RwH0X8bJF3IpfoxL@cluster0.lhw3atd.mongodb.net/shortner";
 
 const app = express();
 app.use(express.json());
@@ -32,6 +35,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Moved specific routes before the catch-all routes
+app.use("/api/v1", registeredLinkRouter);
+app.use("/api/v1", userRouter);
 app.use("/api/v1", unregisteredLinkRouter);
 app.use("/", unregisteredLinkRouter);
-app.use("/api/v1", userRouter);
+app.use("/", registeredLinkRouter);

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { nanoid } from "nanoid";
-import RegisteredLink from "../models/registered";
-import { authMiddleware } from "../middleware/auth";
+import RegisteredLink from "../models/registered.model.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -47,17 +47,24 @@ router.post(
 );
 
 router.get(
-  "/registered-links",
+  "/all-links",
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
-    const userId = (req as any).user.userId;
-
+    console.log("Request received at /registered-links");
     try {
+      const userId = (req.user as any)?.userId;
+      console.log(userId);
+
+      if (!userId) {
+        res.status(401).json({ message: "User ID not found" });
+        return;
+      }
+
       const links = await RegisteredLink.find({ user: userId });
-      res.status(200).json(links);
+      res.status(200).json({ links: links || [] });
     } catch (error) {
       console.error("Error retrieving registered links:", error);
-      res.status(500).send("Internal Server Error");
+      res.status(500).json({ message: "Internal Server Error" });
     }
   }
 );
