@@ -2,11 +2,17 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import User from "../models/user.js";
+import User, { IUser } from "../models/user.js";
 import passport from "passport";
 import { authMiddleware } from "../middleware/auth.js";
 import RegisteredLink from "../models/registered.model.js";
 import mongoose from "mongoose";
+
+declare global {
+  namespace Express {
+    interface User extends IUser {}
+  }
+}
 
 const router = Router();
 
@@ -17,6 +23,7 @@ router.post("/signup", async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
   if (!email || !passport) {
     res.status(400).json({ message: "Enter all fields" });
+    return;
   }
   try {
     const existingUser = await User.findOne({ email });
@@ -53,19 +60,19 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
-  async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
+  (req, res) => {
+    const user = req.user as IUser | undefined;
 
-      const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-        expiresIn: "1h",
-      });
-
-      res.redirect(`/dashboard?token=${token}`);
-    } catch (error) {
-      console.error("Error during Google OAuth callback:", error);
-      res.status(500).send("Internal Server Error");
+    if (!user) {
+      res.status(400).json({ message: "User not found" });
+      return;
     }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.redirect(`http://localhost:5173/dashboard?token=${token}`);
   }
 );
 
@@ -91,24 +98,21 @@ router.get(
   }
 );
 router.get(
-  "/user-links",
-  authMiddleware,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const userId = (req as any).user.userId;
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    const user = req.user as IUser | undefined;
 
-      const links = await RegisteredLink.find({ user: userId });
-
-      if (!links.length) {
-        res.status(404).json({ message: "No links found for this user" });
-        return;
-      }
-
-      res.status(200).json({ links });
-    } catch (error) {
-      console.error("Error fetching user links:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    if (!user) {
+      res.status(400).json({ message: "User not found" });
+      return;
     }
+
+    const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.redirect(`http://localhost:5173/dashboard?token=${token}`);
   }
 );
 
@@ -159,5 +163,14 @@ router.get(
     }
   }
 );
+// router.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google", { failureRedirect: "/login" }),
+//   (req, res) => {
+//     // Successfully authenticated, redirect or respond
+//     const user = req.user; // Get the user from the request
+//     res.redirect("/dashboard"); // Redirect to a dashboard or another page
+//   }
+// );
 
 export { router as userRouter };

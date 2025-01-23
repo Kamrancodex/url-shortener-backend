@@ -5,9 +5,15 @@ import User, { IUser } from "../models/user.js";
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      callbackURL: "/auth/google/callback",
+      clientID:
+        process.env.GOOGLE_CLIENT_ID ||
+        "21071364024-bl83s8s0qd5em65c7n6um2gfd7ljsq85.apps.googleusercontent.com",
+      clientSecret:
+        process.env.GOOGLE_CLIENT_SECRET ||
+        "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",
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ||
+        "http://localhost:3000/auth/google/callback",
     },
     async (
       accessToken: string,

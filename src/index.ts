@@ -4,6 +4,9 @@ import mongoose from "mongoose";
 import { userRouter } from "./routes/user.js";
 import cors from "cors";
 import { registeredLinkRouter } from "./routes/registeredLink.js";
+import passport from "passport";
+import "./config/passport.js"; // Or wherever your Google strategy is configured
+import session from "express-session";
 const MONGO_URI =
   process.env.MONGO_URI ||
   "mongodb+srv://rohitvlogs02:RwH0X8bJF3IpfoxL@cluster0.lhw3atd.mongodb.net/shortner";
@@ -32,9 +35,17 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-
+app.use(
+  session({
+    secret: "your_secret_key", // Replace with a strong secret in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to `true` if using HTTPS
+  })
+);
 app.use(cors(corsOptions));
-
+app.use(passport.initialize());
+app.use(passport.session()); // Only if you are using sessions
 // Moved specific routes before the catch-all routes
 app.use("/api/v1", registeredLinkRouter);
 app.use("/api/v1", userRouter);
